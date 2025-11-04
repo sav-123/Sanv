@@ -1,0 +1,441 @@
+->> LINUX APACHE WEB SERVER :
+
+
+-> Apache WEB SERVER features :
+------------------------------
+
+- Currently the most popular web server.
+
+- Cross platform support.
+
+- Your type of OS doesn't really matter since Apache is versatile.
+
+- Configurable and flexible 
+
+- Open source and community driven
+
+- Security features
+
+- Shared and virtual hosting ( On one webserver , we can host more than one website )
+
+
+-> Service Profile : HTTPD : 
+----------------------------
+
+- Type : System V-managed service
+
+- Packages : httpd, httpd-devel, httpd-manual   (devel = developer)
+
+- Daemon : /usr/sbin/httpd
+
+- Script : /etc/init.d/httpd
+
+- Ports : 80(http), 443 (https)
+
+- Configuration : /etc/httpd/*, /var/www/*
+
+- Related : system-config-httpd, mod_ssl
+
+- Main config file : /etc/httpd/conf/httpd.conf
+
+- Default document root : /var/www/html
+
+
+-> Setting up HTTPD and viewing one test webpage.
+-------------------------------------------------
+
+- Initially, install the httpd package , using the command : "yum install httpd"
+
+- Now, we need to add this service in the firewall, using the command : "firewall-cmd --add-service=http --permanent"
+
+- After adding, we need to reload the firewall, using the command : "firewall-cmd --reload"
+
+- We can check whether the service has been listed or not on the firewall, using the command : "firwall-cmd --list-service"
+
+- After this, we need to restart the system services using the command : "systemctl restart httpd"
+
+- Now to enable the service, we need to type : "systemctl enable httpd"
+
+- Now we need to install lynx .
+
+- WHY LYNX ? 
+------------
+
+-> What is lynx ?
+
+- Lynx is a text-based web browser that runs in the terminal or command line interface. It was first released in  
+  1992 and is one of the oldest web browsers still in use.
+
+-> What does lynx do?
+---------------------
+
+- It allows users to browse websites using only text, without loading images, CSS, or JavaScript.
+
+- It’s especially useful on remote servers, low-bandwidth environments, or when working over SSH.
+
+- You can navigate hyperlinks, submit forms, and view web content in a very lightweight way.
+
+-> Why do we use lynx?
+----------------------
+
+- Minimalist browsing: Great for quick checks or automation where full rendering isn’t needed.
+
+- Accessibility: Useful for visually impaired users with screen readers.
+
+- Scripting and automation: Can be used in scripts to fetch and parse web pages.
+
+- Security: No JavaScript execution means fewer attack vectors.
+
+- Speed: Loads pages much faster than graphical browsers.
+
+-> Why use lynx instead of curl?
+--------------------------------
+
+- While both can fetch web content, they serve different purposes:
+
+Feature					LYNX					CURL
+
+Purpose				Browsing websites (text-based)		Transferring data (HTTP, FTP, etc.)
+
+Interactivity			Yes (can follow links, submit forms)	No (just fetches data)
+
+Rendering			Displays formatted text			Raw HTML or data
+
+Use Case			Viewing and navigating websites		API calls, file downloads, scripting
+
+
+So, if you want to interact with a website in a terminal (like clicking links or submitting forms), lynx is better. If you just want to fetch data or make API requests, curl is more appropriate.
+
+- Now, we run this command : "lynx <your_Server_ip> "
+
+> What the command does: lynx tries to open a web page hosted at the IP address you provided.
+
+> If the server at <my_server_ip> is running a web service (like Apache, Nginx, etc.), lynx will attempt to connect to it over HTTP (port 80 by default).
+
+> It will then render the HTML content of that page in a text-only format in your terminal.
+
+>  What needs to be in place for it to work:
+
+> Web server running on <my_server_ip> (e.g., Apache, Nginx).
+
+> The server must be reachable from your machine (no firewall or network restrictions).
+
+> The server must be serving HTML content or something that lynx can interpret.
+
+NOTE : If nothing is running on that IP:
+
+> You’ll likely see an error like: Alert!: Unable to connect to remote host.
+
+--------------------------------------------------------------------------------------------------------------
+
+
+Now , we will try to create 2 websites and host it on the same webserver : 
+-------------------------------------------------------------------------
+
+- Agenda : Apache web server says that it allows users to host more than one websites on a single webserver. So, to check that fact , we are going to perform the below steps.
+
+- So, we will create 2 webpages and try to host them on the same webserver ip and see if that works or not.
+
+- Before we start, we need to know some facts about apache webserver : 
+	
+	> The default directory to save our webpages is /var/www/html , .i.e u can save all your webpages under 
+	this directory.
+
+	> Apache says, if we need to access our webpages without entering the ip, .i.e by names then we need to 
+	perform two major steps :
+
+	1 > Register your webpages domain to the server ip under the /etc/hosts directory.
+
+	2 > Edit the apache httpd config file, and create two virtual hosts . By virtual hosts , it means to enter your basic details about the webpage i.e name, serveradmin, path 
+
+
+- So, now first of all we should register both our websites domain under the /etc/hosts file.
+
+- To do that, we type : "vi /etc/hosts" . We can comment the other domains registered under the server ip (if any are there ) or just leave it as it is.
+
+- Now we add 2 more domains under the same ip like this : 
+
+			172.22.61.69 		server.lti.com
+			172.22.61.69		virtual.lti.com
+
+- Save the file and exit. So, now when we will use these names to access our webpages, the server will already know to link the required ip. 
+
+- Now, We need to actually create these two webpages , to do so we need to create two directories under the /var/www/html folder so that it is easily manageable. Move to the /var/www/html dir using : cd /var/www/html
+
+- The first folder we can create is /server and the second folder can be /virtual by using these following commands : "mkdir /server"  and "mkdir /virtual"
+
+- Now for the first webpage , we move to the newly created directory /server and create an index.html file .
+
+(NOTE : Before creating the index.html file , check your present working directory by using pwd command , it should like this : /var/www/html/server )
+
+(Also, why index.html? because every site's landing page is always index.html)
+
+- Now, we can write anything we want to display on the webpage under the index.html file.
+		
+	> "vi index.html" > Type Welcome to server.lti.com" > save and exit.
+
+- Similarly, we need to perform these steps for our second webpage. So, we now move to the /virtual directory and create an index.html file there.
+
+(NOTE : Before creating the index.html file , check your present working directory by using pwd command , it should like this : /var/www/html/virtual )
+
+-  Now, we can write anything we want to display on the webpage under the index.html file.
+		
+	> "vi index.html" > Type Welcome to virtual.lti.com" > save and exit.
+
+ 
+- Now that our webpages have been created, we need to enter their details under the httpd config file.
+
+- Edit the config file using this command : "vi /etc/httpd/conf/httpd.conf"
+
+- At the end of the file, below the ENABLE SENDFILE on tag we need to enter some details regarding our webpages :
+
+		<VirtualHost server.lti.com>
+		ServerAdmin root@server.lti.com
+		DocumentRoot /var/www/html/server
+		</VirtualHost>
+		
+		<VirtualHost virtual.lti.com>
+		ServerAdmin root@virtual.lti.com
+		DocumentRoot /var/www/html/virtual
+		</VirtualHost>
+
+- After entering these details we can save the file and exit. Now as we already know, that after editing any type of config file, to take it effect , we need to restart the system services.
+
+- Use the command : "systemctl restart httpd" 
+
+( NOTE : If u get any type of error after the above command, that means while editing u have made some error in the config file, so u need to rectify it.
+
+To know whether u have made any mistake or not, or what mistake u made, there is a powerful command provided by apache : " apachectl configtest"
+
+It shows u what mistake u made with the exact line numbers )
+
+
+- Now, to actually host these 2 webpages and see if these are working properly or not we can use these 2 commands : "lynx server.lti.com" and "lynx virtual.lti.com"
+
+- Both of these commands will show you your respective landing pages of both the websites.
+
+------------------------------------------------------------------------------------------------------------------
+
+WEB PROXY SERVER : A web proxy server is an intermediary server that sits between a user's device and the internet. It handles requests from clients (like web browsers) and forwards them to the destination server, then returns the response back to the client.
+
+- That proxy server has every rules defined that who can access and what they can access over the internet.
+
+- Squid Web Proxy Server : 
+-------------------------
+
+-> Service Profile :
+---------------------
+
+- Rpm required : SQUID
+
+- Main Config file : /etc/squid/squid.conf
+
+- Port - 3128 ( configurable )
+
+- Service : squid
+
+
+-> Setting up Squid Proxy server : 
+----------------------------------
+
+- We need to install the squid package, using the command : "yum install squid"
+
+- Now we need to edit the config file of squid, using the command : "vi /etc/squid/squid.conf"
+
+- In that file, we will make the add these things.
+
+		> You will find an acl list ( access control list) 
+		
+		> Under that list, add at the top : acl lti src 172.22.61.0/16
+
+		? Reference material for this acl and other changes : In LMS 
+
+		> Also, add these in the following : http_access allow lti 
+		
+		> we can also change the default port from 3182 to 8080
+
+- Save the file and exit.
+
+- After this, as always we need to add this service to the firewall and reload the firewall.
+
+- Using the commands : "firewall-cmd --add-service=squid --permanent" and "firewall-cmd --reload"
+
+- After this, reload the system services, using the command : "systemctl restart squid".
+
+- To start and stop squid, we can use : "systemctl enable squid" and "systemctl stop squid" respectively.
+
+ NOTE : After these changes, we need to always go to our system setting and the defined proxy manually too, otherwise it won't work.
+
+----------------------------------------------------------------------------------------------------------------
+
+LINUX MAIL Service : 
+-------------------
+
+-> Process flow :
+-----------------
+
+	MTA			     MTA
+Sender -----> Sender's mail server ---------> Receiver's mail server ----------> Receiver
+									MDA
+
+- MUA = Mail user agent. EX : outlook, express, thunderbind
+
+- MTA = Mail Transfer agent EX : Mail Transfer agent. Ex : Sendmail, postfix
+
+- MX RECORD = MAIL server record
+
+- MDA = Mail delivery agent. Ex : pop3, imap.
+
+- MRA = Mail retriever agent
+
+
+-> Service Profile : SendMail :
+-------------------------------
+
+- type : System V-Managed service
+
+- Packages : sendmail, sendmail-cf, sendmail-doc
+
+- Daemon : /usr/sbin/sendmail
+
+- Script : /etc/inti.d/sendmail
+
+- Port : 25 ( smtp = simple mail transfer protocol)
+
+- Configuration : /etc/mail/sendmail.mc , /etc/aliases, and others
+
+- Related : procmail(MDA), spamassasin, tcp wrappers, sendmail-doc
+
+Main configuration file /etc/mail/sendmail.cf , we have to edit /etc/mail/sendmail.mc and update the /etc/mail/sendmail.cf using the Macro m4
+
+# cd /etc/mail/
+# m4 sendmail.mc > sendmail.cf
+
+-> Steps to setup sendmail on server side: 
+-----------------------------------------
+
+- We first need to install the sendmail package : "yum install sendmail sendmail-cf m4"
+
+- Move to the /etc/mail using "cd /etc/mail".
+
+- After installing we have to edit the sendmail.mc file and made some changes there. To edit that file we need 
+
+ to use this command : " vi /etc/sendmail/sendmail.mc
+
+- In that file, we need to comment out the DAEMON line below the internet part.
+
+- Save the file and exit.
+
+- After this we need to add the service to the firewall using this : "firewall-cmd --add-service=smtp --permanent"
+
+
+- Reload the firewall and check the service if it is added properly or not using these commands : 
+  
+  "firewall-cmd --reload" and "firewall-cmd --list-serivices"
+
+- Now restart the system service, using this command : "systemctl restart sendmail"
+
+- Enable the sendmail service, using : "systemctl enable sendmail"
+
+----------------------------------------------------------------------------------------------------------------
+
+-> Dovecot : 
+------------
+
+- Dovecot is an open-source IMAP and POP3 server for Unix-like operating systems. It's widely used for handling 
+
+  email retrieval, especially in combination with Sendmail, Postfix, or other Mail Transfer Agents (MTAs).
+
+-> What Dovecot Does ?
+--------------------
+
+- IMAP/POP3 Server: It allows users to access their email stored on the server using email clients like Thunderbird, Outlook, or mobile apps.
+
+- Mailbox Management: Supports various mailbox formats like Maildir and mbox.
+
+- Authentication: Provides secure user authentication using system users, virtual users, or external databases.
+
+- Security: Offers SSL/TLS encryption, preventing unauthorized access to email data.
+
+- Performance: Known for being lightweight, fast, and easy to configure.
+
+-> Typical Use Case :
+---------------------
+
+- If you're setting up a full mail server:
+
+- Sendmail/Postfix handles sending and receiving mail (SMTP).
+
+- Dovecot handles storing and retrieving mail for users (IMAP/POP3).
+
+
+-> Service Profile : Dovecot :
+--------------------------
+
+- Type : SystemV-Managed service
+
+- Package : dovecot
+
+- Daemon : /usr/sbin/dovecot
+
+- Script : /etc/init.d/dovecot
+
+- Ports : 110(pop3), 995 (pop3s), 143 (imap), 993 (imaps)
+
+- Configuration : /etc/dovecot.conf
+
+- Related : procmail, fetchmail, openssl
+
+
+-> Setting up dovecot on server side : 
+-------------------------------------
+
+- First, install the dovecot package using this : "yum install dovecot"
+
+- Now we need to edit the config file of the dovecot, using this : "vi /etc/dovecot/dovecot.conf"
+
+- In this file, we need to just add some protocols under the already commented out protocol part : 
+			
+			> protocols = pop3 pop3s imap imaps
+
+- Save the file and exit.
+
+- After this, now we have to copy this file into the actual configuration file i.e sendmail.cf using the macro command : " m4 sendmail.mc > sendmail.cf "
+
+- Now we need to add these ports in the firewall using these commands : 
+
+			"firewall-cmd --add-port=110/tcp --permanent"
+			"firewall-cmd --add-port=995/tcp --permanent"
+			"firewall-cmd --add-port=993/tcp --permanent"
+			"firewall-cmd --add-port=143/tcp --permanent"
+
+- Reload the firewall and check the ports if they are added properly or not using these commands : 
+  
+  "firewall-cmd --reload" and "firewall-cmd --list-ports".
+
+- Now restart the service and enable them then, using : "systemctl restart dovecot" & "systemctl enable dovecot"
+
+----------------------------------------------------------------------------------------------------------------
+
+-> To send a mail from server to the client  : 
+---------------------------------------------
+
+- Install the s-nail package using the command " yum install s-nail"
+
+- Now to send the mail to receiver's ip, use this command : "mail root@<client_ip>"
+
+- type your mail and then send it.
+
+---------------------------------------------------------------------------------------------------------------
+
+-> To send a mail from one user to other user :
+-----------------------------------------------
+
+- Just type mail <user_name> and try to send the mail.
+
+- Now change the user temporarily to student using the command : " su - student ".
+
+- check the mail using the command : "mail"
+
+--------------------------------------------------------------------------------------------------------------
+

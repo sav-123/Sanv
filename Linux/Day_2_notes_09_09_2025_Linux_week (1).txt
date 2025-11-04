@@ -1,0 +1,305 @@
+Booting process : 
+
+-> BIOS (Post and ramtest) -> MBR -> Boot Loader -> Kernel -> SystemD(First process when we boot) -> Targets
+-> POST initializes all the peripheral devices
+-> MBR is Master boot record, it contains the partition table.
+-> Boot loader : 
+
+LILO = Linux Loader used in earlier versions
+If changes are made in the config file, you need to
+Reload LILO
+GRUB = GRAND UNIFIED BOOT LOADER
+If changes are made in the config file, you need not Reload GRUB
+
+-> Runlevel (Now known as Targets) in Linux is a mode or state that defines what system services are operating.
+
+-> runlevel 0 - shutdown
+   runlevel 1 - safe mode
+   runlevel 3 - normal ( comes with CLI Login) 
+   runlevel 4 - Access to configure and select which process can run
+   runlevel 5 - normal ( comes with GUI login)
+   runlevel 6 - reboot
+
+-> init and telinit are same, used to tell the system which runlevel u want or set any runlevel.
+
+-> init was used in earlier versions of RHEL 6 and 7 , but now if u want to know that what type of system description u have logged in......use systemctl get-default command
+
+-> systemctl get-default : tells us the default system description.
+
+-> systemctl set-default mutli-user.target : sets the default system description to mutli-user mode.
+
+-> If u want to change the runlevel current , then use init else to change the runlevel for the next 3 boot process then use systemctl set-default TARGET.target command.
+
+
+NOTE : To read about details regarding init and runlevel , use command cat  /etc/inittab
+
+
+---------------------------------------------------------------------------------------
+
+
+Partioning : 
+
+Hdd partition is mainly divided into 4 partitions.
+
+-> fdisk -l | more to check number of partitions and other details.
+-> fdisk /dev/sda to enter the command menu to perform partition. In the menu, use :
+-> p to check number of partitions.
+-> n to create new partition.
+-> After creating an extended partition, you can go forward for the creation of logical partitions.
+-> Again check the partitions with command p, type n, then select the default partition as e (extended).
+-> In first and last sector, always press enter to take all the remaining space of the disk.
+-> In layman terms for the first sector, enter command works as selecting the space from the start till last, and for the last sector enter command works as taking space from the last till start.
+-> again check the partitions with p, u can see that an extended partition is created with the remaining disk space.
+-> Now create as many as logical partitions u want under the defined extended partition limit.
+-> To save the partition TYPE w.
+-> To exit the command menu TYPE q.
+-> To delete a partition type d and delete from bottom to top.
+-> * means boot partition
+
+-> partprobe command will update the partition table that is loaded into the memory without reboot, otherwise to take in effect the changes u will have to reboot the system.
+
+
+------------------------------------------------------------------------------------------------------
+
+Creating partition and deleting a partition (Including the mounting/unmounting) : 
+
+-> mkfs -t <filesystem> <partition path> : make file system command used to format a disk or partition with a specific filesystem.
+-> Create a directory to mount the disk or partition. using mkdir command ( note always make a dir under the / , as it is easier to give permissions).
+-> Now to mount the disk or partition use, command mount <partition path> <directoryname> (ex : mount /dev/sda5 /data)
+-> Now to check the mounted or active partitions use the command df -Th.
+-> Also note that u can never delete a mounted partition, first u have to unmount it using the umount <dirname> command and then check the fdisk and go again into the fdisk menu and delete the partition or disk using the d command.
+
+
+Procedure or Steps ::  Create a partition -> Format it -> Mount it -> Check if mounted -> unmount -> delete.
+
+
+Assignment : Perform the above steps again. (Already done)
+
+---------------------------------------------------------------------------------------
+
+How to permanently mount a partition, so that it can persist after reboot too.
+
+-> COMMAND : vi /etc/fstab
+
+-> click i to go into insert mode in the vi editor.
+
+Note : Fields in /etc/fstab: It contains 6 fields as shown below :
+
+   1          2            3            4              5           6
+#Device    Mountpoint  filesystem   mountoptions   dumpfreq   filesystemcheck
+
+/dev/sda5   /data       xfs           defaults     0                0
+
+-> fill all these details as shown above.
+
+-> To check TYPE tail -2 /etc/fstab ( tail will show last 10 lines of the file and head will show first 10 lines of the file, to filter out we use -2 so that we can see only last 2 lines).
+
+-> To save a file in vi editor press esc :wq
+-> To exit a file without saving press esc :q!
+
+So basically the steps can be summarized as : (Before these steps kindly unmount the directory)
+
+1. Go to /etc/fstab file using vi editor.
+2. At the end of the file add your details as described above.
+3. Save the file.
+4. Always type 'systemctl daemon-reload' to update the systemd, after editing /etc/fstab file.
+4. To check if everything is correct u can type mount -a. It will check syntax and everything.
+4. Exit.
+
+
+-> /etc/fstab = Devices and partitions we need to add in this file so that they are mounted at boot time.
+
+-> Dump frequency = how frequently it is backed up.
+	0 = never backed up
+	1 = backed up daily
+	2 = backed up on alternate days
+
+-> FSCK  = file system check
+	0 = never check
+	1 = check on priority
+	2 - 9 = equal priority checked parallelly
+
+-> Default mount options
+
+1. rw = read, write
+2. suid = special permissions are honoured
+3. exec = execute permissions are honoured
+4. dev = device files are honoured.
+5. nouser = only root can mount the partition.
+6. auto = entries in the /etc/fstab are mounted automatically with mount -a without rebooting.
+
+------------------------------------------------------------------------------------------------------
+
+RAID = Redundancy array of inexpensive/independent disks.
+	- We can recover data from other hard disks if the primary hard disk fails.
+	- It helps in fault tolerance and redundancy.
+
+Hardware RAID - It has own processor, memory and software.
+		It is faster.
+		It is expensive.
+
+Software RAID - It has low performance since it consumes resources from the host.
+
+-> To create disks and attach it to be a part of RAID we perform the following steps : 
+	
+	- Create 3 more partitions using the above steps that were elaborated.
+	- Use t command to toggle their id and change them to fd ( fd is the default id for LINUX Raid )
+	- After changing all the id's save it using w.
+	- Type partprobe as usual to help re read the partition table without rebooting the system.
+	- check by using the command fdisk -l /dev/sda
+
+NOTE : THE ABOVE STEPS ARE USED TO PREPARE THE STORAGE FOR RAID.
+
+
+-> command : mdadm -C /dev/md1 -a yes -l -n 3 /dev/sda{6,7,8}
+
+-> mdadm = RAID administration command
+	: C = create RAID
+	: -a yes to create the RAID device file.
+	: -l = RAID level
+	: -n = number of raid components
+	: -x = spare hdd
+
+NOTE : THE ABOVE STEPS ARE USED TO CREATE THE RAID ARRAY ITSELF.
+
+So you're actually:
+
+Creating the RAID array /dev/md1 using the partitions you just made.
+Specifying the RAID level (-l 5) and number of devices (-n 3).
+✅ This step builds the RAID array using the partitions you prepared.
+
+-> To check the stat of RAID DISKS type the command "cat /proc/mdstat" or "mdadm --detail /dev/md1".
+
+If in some case one of the raid harddisks fail and we want to recover then this is the simulation process:
+
+-> Use the command : mdadm -f /dev/md1 /dev/sda7 to fail one of the hard disks manually.
+-> Use the command : mdadm -r /dev/md1 /dev/sda7 to remove the failed hard disk.
+-> Use the command : mdamd -a /dev/md1 /dev/sda7 to add the new hard disk u created.
+
+NOTE : after removing the failed hard disk, all the process creating a hard disk, then raid array and everything must be repeated , after that u simply add the new disk using the below command.
+
+-> Use the command : mdamd -a /dev/md1 /dev/sda7 to add the new hard disk u created.
+
+NOTE: Options : - (-f) = to fail
+		- (-a) = to add
+		- (-r) = to remove
+
+
+Note: There should be atleast one hd in the raid array for the process of recovery.
+
+-> To stop the RAID, use the command "man mdadm" first to get the command doc and then to finally stop use
+"mdadm --stop /dev/md1
+
+
+
+-> After this unmount the directory associated with the raid. i.e "umount /raiddata/
+
+-------------------------------------------------------------------------------------------
+
+Command lsblk :
+
+- The lsblk command, short for list block devices, is a powerful utility in Linux used to display detailed information about block devices such as hard drives, SSDs, and other storage-related devices.
+
+- It is part of the util-linux package, which is pre-installed on most Linux distributions. This command queries the /sys virtual filesystem and udev database to provide a tree-like view of block devices, including their partitions and mount points.
+
+-------------------------------------------------------------------------------------------
+
+Command blkid : 
+
+The blkid command in Linux is a powerful utility used to locate or print block device attributes. A block device can be a hard drive, SSD, or removable storage device like a USB drive. This command helps determine the type of content a block device holds (e.g., filesystem or swap) and displays attributes from the content metadata, such as LABEL or UUID fields.
+
+-------------------------------------------------------------------------------------------
+
+Local variable, global variable, and environment variable , typescripts :
+
+-> Shell is configured using variables, aliases and functions.
+-> a=10 b=20 c=hello (declaring variables)
+-> echo a=$a b=$b c=$c
+-> These are the local variables and these do not pertain around subshells.
+-> Now create one script using vi script1.
+-> Enter the content in the file as "echo a=$a b=$b c=$c".
+-> Save the file using esc + :wq 
+-> Now to run the script file there are three ways : 
+	- first command : sh script1
+	- second command : bash script1
+	- third command : ./script1 ( but first give execute permission by typing "chmod +x script1").
+
+-> The output will not come with the values since these variables are currently local variable.
+
+
+So to change these local variables to environmental variable use command "export <variables with values>
+
+-> Type "export a=10 b=20 c=hello", this will declare it as environmental variable (locally).
+-> Now, run again those script commands , it will run properly.
+
+
+-> Now to temporarily change the user , use command "su - <username>"
+ 	type su - student;
+
+-> try to echo a,b,c values it wont come, why?? since still the env variables we declare is not global and not permanent.
+-> to tackle this situation we need to edit the /etc/profile file.
+-> Type "vi /etc/profile" and then go towards the EXPORT section add those variables a=10 b=20 c=30
+-> Save the contents of file.
+-> Now these changes will only come into effect once we logout and login again i.e for next login session it work.
+-> To tackle this situation , use the command source <filename> ( source /etc/profile), it will make the changes effected from the current session only.
+-> Now, u can check the values under the root user as well as other uses , it will print all the values respectively.
+
+
+So summarizing , all this process was to declare local variable , then change it to env variable(locally) and lastly changing it to env variable(global).
+
+--------------------------------------------------------------------------------------------------
+
+Different types of shells in UNIX/LINUX :
+
+1) sh - Bourne shell
+2) Ksh - korn shell by Korn of Bell LABS AT&T
+3) BASH - Bourn again Shell by Brian FOX for GNU
+4) Csh - C shell by Bill Joy
+5) 
+
+BASH Shell : 
+- Default in RHEL
+- Most user friendly (we can recall previous commands etc)
+
+Ways to check which shell u are using is to use : 
+
+1) use command "ps"
+2) use command "echo $SHELL"
+
+To check version of the bash use command "echo $BASH_VERSION"
+
+ctrl + a = moves cursor to the beginning of the line in CLI
+ctrl + e = moves cursor to the end of the line in CLI
+ctrl + u = deletes the command from the beginning of the line
+ctrl + k = deletes the command from the end of the line
+
+-> hostname tells the host
+-> echo $PS1 tells the default prompt [
+-> The representation of home directory is ~
+-> U can change the default prompt temporarily by  giving PS1=<name>:
+-> \t = time, \d = date, \h = hostname
+-> PS2 is the secondary prompt.
+-> The secondary prompt by default is >
+
+-----------------------------------------------------------------------------------------------------------
+
+Shell startup scripts or Shell login scripts : 
+
+1. /etc/profile = contains variables which are exported (global variables)
+
+2. ~/.bash_profile = hidden under home dir of that user ,This is user specific profile.
+
+3. /etc/bashrc = contains aliases and function for all users
+
+4. ~/.bashrc = user specified bashrc
+
+5. /etc/profile.d = Dir contains scripts for your shell environment
+
+6. /etc/skel = Dir contains scripts that are copied into the new user's home directory.
+
+
+NOTE : Always use source <filename> to get the effects that happened by changing the file in the same session.
+
+------------------------------------------------------------------------------------------------------------
+
+

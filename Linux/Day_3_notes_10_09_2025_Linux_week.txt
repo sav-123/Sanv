@@ -1,0 +1,337 @@
+LVM (Logical Volume Manager) : 
+
+- In LVM we can resize because physical extends(PE) are created.
+- Physical extend is the minimum size by which we can resize the logical volume.
+- Standard and raid partitions cannot be resized as they do not have any physical extends.
+
+- Steps to create LVM :
+
+-> So, intitally we have to create standard partitions and change the partition id to 8e (It denotes LVM).
+-> Create physcial volumes.
+-> Combine physical volumes and create volume groups.
+-> Create logical volumes inside volume group.
+-> Format and mount the logical volumes.
+-> Resize as required. 
+
+Note : Create partition as multiple of 4.
+
+
+Some imp commands regarding LVM : 
+
+-> pvcreate <partitionname> = to create physical volumes
+-> pvdisplay = to display physical volumes
+-> pvremove = to remove the physical volumes
+-> pvs = to summarize the physical volumes
+-> vgcreate <vgname> <partitionname> = to create the volume groups
+-> vgdisplay <vgname> = to display the volume groups
+-> vgextend = to extend the volume groups
+-> vgreduce = to reduce the volume groups
+-> vgremove = to remove the volume groups
+-> lvcreate = to create logical volumes
+-> lvextend = to extend logical volumes
+-> lvreduce = to reduce logical volumes
+-> lvremove = to remove logical volumes
+
+
+So the flow goes like this : 
+
+- Standard partition -> Physical volume -> Volume groups -> Logical volume
+
+
+- For the lvmcreate command, the syntax is as follows : lvmcreate -L size -n <lvmname>
+							-L = size, -n = name of the lvm1
+							<lvmname> = lvm name with its path
+							(for example : /dev/vg1/lvm1) 
+
+- In practice we created 3 partitions of 40M each, and then we created physical volumes
+
+- To create pv we typed "pvcreate /dev/sda{9,10,11}"
+
+
+- To display pv we typed pvdisplay | more
+
+- We typed pvs to see a summary view
+
+- Then we created a volume group consisting of 3 pv by using the command "vgcreate vg1 /dev/sda{9,10,11}"
+
+- to display the vg we typed , "vgdisplay vg1"
+
+- After all this, we tried to create two logical volumes of 40Mb size each inside the vg1
+
+- We used the command "lvcreate -L 40M -n /dev/vg1/lvm1" and "lvcreate -L 40M -n /dev/vg1/lvm2"
+
+- We didn't create the 3rd lvm to spare the remaining 28MB for the extending practice.
+
+- We typed lvdisplay to display the lv, and lvs to summarize.
+
+- Now for the first lvm, we formatted it in xfs filesystem type as in xfs we can extend them but cannot 
+reduce the partition. Command used : mkfs -t xfs /dev/vg1/lvm1
+
+- For the second lvm, we formatted it in ext4 filesystem type as in ext4 we can extend and as well as 
+reduce the partition. Command used : mkfs -t ext4 /dev/vg1/lvm2
+
+- After this we need to mount them, so we created two directories or mount point namely /lvm1 and /lvm2 using mkdir command.
+
+- Now to mount both the partitions to the dir we used "mount /dev/vg1/lvm1 /lvm1" and "mount /dev/vg1/lvm2 /lvm2" 
+
+- To check the mounted partitions we used the df -Th command.
+
+-> EXTENSION IN XFS FILESYSTEM PARTITION : 
+
+- Now, we tried to extend lvm1 partition, using the command "lvextend -L +20M /dev/vg1/lvm1".
+
+- After this if you check using df -Th command, then it won't show the change as we have only extended the partition till now.
+
+- So, to take in effect we need to extend the filesystem too. We did it using the command "xfs_growfs /dev/vg1/lvm1"
+
+- Now if we check using df -Th, then we can see the changes in effect.
+
+-> REDUCTION IN EXT4 FILESYSTEM PARTITION : 
+
+- In case of ext4 , we should always first take backup of the data.
+
+- Now the first step is to unmount the partition so that we can resize. To unmount we use "umount /lvm2"
+
+- Note, in ext4 we perform the steps in opposite manner of xfs i.e first we resize the filesystem and then we resize the partition.
+
+- So, to resize the filesystem we use the command "resize2fs /dev/vg1/lvm2 20M" to check the filesystem.
+
+- Then we used the command "e2fsck -f /dev/vg1/lvm2"
+
+- Again we have to use "resize2fs /dev/vg1/lvm2 20M" but this time we are actually resizing and not just checking the filesystem.
+
+- Now to reduce the partitions, we used the command "lvreduce -L -20M /dev/vg1/lvm2"
+
+- Now we mount again the partitions to the specified mountpoint , using "mount /dev/vg1/lvm2 /lvm2"
+
+- We can check the reduced size using the command df -Th.
+
+-> EXTENSION IN EXT4 FILESYSTEM PARTITION : 
+
+- In case of extension, we go extend the partition using the command "lvextend /dev/vg1/lvm2 20M"
+
+- Now we need to extend the filesystem too, so we used the command "resize2fs /dev/vg1/lvm2 40M"
+
+- After both these steps , we can check the changed size using the command "df -Th".
+
+-> SNAPSHOT in LVM : 
+
+- lvmsnapshot = To backup an LVM
+
+- A snapshot is another lvm.
+
+- We create another lvm using the following command "lvcreate -s -L 8M -n /dev/vg1/snapoflvm2 /dev/vg1/lvm2"
+
+- The general syntax is "lvcreate -s -L size -n <nameofsnapshot> <sourcename or partition name>"
+
+- Here -s = snapshot, -L = size and -n = name of the snapshot
+
+- Now to check whether we have all the data till this point in the snapshot, we have to mount the snapshot to a particular mountpoint which you can create.
+
+- So we create a mountpoint or directory by using the command "mkdir /snapoflvm2"
+
+- Now we mount the snapshot using the command "mount /dev/vg1/snapoflvm2 /snapoflvm2"
+
+- Now we can check using df -Th.
+
+-------------------------------------------------------------------------------------------------------
+
+Package Management :
+
+Package : To install a particular software.
+We use rpm(redhat package manager) to install packages without dependencies whereas we use yum to install packages with dependencies.
+
+Synaptics : synaptics rpm is for touchpad (not using).
+
+Now to install packages using rpm : We first have to go to the directory /var/ftp/pub/BaseOS/Packages/
+This directory contains all the packages.
+
+We type the command "rpm -ivh <packagename>" to install any package.
+Here -i = install, -v = verbose , -h = hash(#)
+To query whether the package is installed or not we have to type rpm -q zsh.
+Note : We can type rpm -qa to check all the installed packages.
+rpm -qi <packagename> tells me about that particular package.
+To get the config file type rpm -qf /etc/samba/smb.config ( for samba file)
+
+To Remove any package : Only remove packages that are installed by you.
+
+To remove, type command "rpm -e <packagename>" , like in our case we will type rpm -e zsh.
+To check if it is removed or erased or not type rpm -q <packagename>.
+
+To Update any package to its newer version :
+
+Note, we use the command "rpm -U <packagename>" or "rpm -F <packagename>".
+Now here -U = upgrade the new version if available, if old version is not installed it will install the old version.
+In case of -F = Freshen to upgrade to new version, if old version is not installed it won't install the old version.
+
+Note : If u want to install any package without dependency , then we use rpm -ivh <packagename> --nodeps
+
+Now to use yum :
+
+We have to now move to the directory /etc/yum.repos.d/
+Now create a file named as server.repo using "vi server.repo"
+In that we have to mention the repo we want to have.
+In practice we will be using the BaseOS and AppStream repo.
+So the content we type in that server.repo file is shown below :
+	- [BaseOS]
+	  name=BaseOS rpms
+          baseurl=file:///var/ftp/pub/BaseOS
+	  gpgcheck=0
+	  enabled=1
+
+
+         [AppStream]
+ 	  name=AppStream rpms
+          baseurl=file:///var/ftp/pub/AppStream
+ 	  gpgcheck=0
+ 	  enabled=1
+
+Now some important pointers : baseurl starts with file:// <path> 
+				 gpgcheck= GNU private guard to check the key of the package is valid or 				 not (0 means dont check, 1 means check)
+				 enabled means the repo is enabled (0 means disabled, 1 means enabled)
+
+After all these changes save the script server.repo
+Now type "yum clean all" to remove any extra packages or repo.
+Type "yum list all" to list all the packages or repos.
+Type "yum repolist" , to display all the repositories in the script.
+Now to install any package that is inside the BaseOS or AppStream repo, we need to just type "yum install <packagename>"
+
+------------------------------------------------------------------------------------------------------------
+
+Now we are going to discuss package management in client side.
+
+- For this we need to use FTP server, to transfer files from server and install in the client machine.
+
+FILE TRANSFER PROTOCOL : 
+
+- vsftpd - the default Red Hat Enterprise Linux ftp server
+- No longer managed by xinetd
+- Allows system, anonymous or virtual ( FTP only ) user access
+- The anonymous directory hierarchy is provided by the vsftpd RPM
+- /etc/vsftpd/vsftpd.conf is the main configuration file.
+
+SERVICE PROFILE : FTP
+
+- type : SystemV-managed service
+- Package : vsftpd
+- Daemon(process running in background) : /usr/sbin/vsftpd
+- Script : /etc/init.d/vsftpd
+- Ports : 21(ftp), 20 (ftp-data)
+- Configuration : /etc/vsftpd/vsftpd.conf /etc/vsftpd.ftpusers /etc/pam.d/vsftpd
+- Log : /var/log/xferlog
+- Related : tcp wrappers, ip contrack, ftp, ip nat ftp
+
+Process to be done on SERVER SIDE : 
+
+- Firstly we need to install the vsftpd package, using command "yum install vsftpd".
+
+- Now we need to change the config file of vsftpd to enable anonymous login, so that we can login anonymously and do not need to go through authorization. ( by default it is disabled ). 
+The command used is : vi /etc/vsftpd/vsftpd.conf
+
+- Now we change the anonymous_login to YES, and also we can change the ftpd_banner ( It is the first thing displayed on the vsftpd server). In our case we put ftpd_banner=Do not login untill unless u are authorized.
+
+- Now save the file.
+
+- After this, now we need to change the firewall conditions so that we can access with client.
+
+- We type the command : "firewall-cmd --add-services=ftp --permanent" , we added permanent so that it persists.
+
+- If we want to add by port instead of service, then we can use : "firewall-cmd --add-port=21/tcp --permanent"
+and "firewall-cmd --add-port=20/tcp --permanent". (21 for ftp and 20 for ftp-data).
+
+- Now we need to reload the firewall by using the command : "systemctl reload firewalld"
+
+- To list down all the services that are allowed by the firewall, type the command : "firewall-cmd --list-services
+
+- Now, only half work is done, because there is one more check we need to pass i.e selinux
+
+- SeLinux is basically securely enhanced Linux which tells what different programs and users can do.
+
+- So, to bypass the selinux check, we need to edit the selinux config file, and change the selinux mode from enforced to disabled. We use the command : "vi /etc/selinux/config"
+
+- Save the file after making the changes.
+
+- We can check the status of selinux, by typing the command "sestatus"
+
+- On the first time, we will see that the current mode is enforcing only.
+
+- We can also check the current mode by using the command "getenforce"
+
+- Now to make it permissive, we use the command "setenforce 0"
+
+- Now if we will check using "getenforce" we will get the output as permissive. (we can also check using sestatus)
+
+- Now we need to restart the vsftpd server to make all the changes in effect. We use the command "systemctl restart vsftpd".
+
+- Now to enable the vsftpd server we use the command "systemctl enable vsftpd"
+
+- Now go to the package directory by using "cd /var/ftp/pub/AppStream/Packages"
+
+- To send the required package to the client we need to use scp command , scp means secure copy and it is used when we want to copy any file from one machine to any remote machine.
+
+- So, we type "scp <packagename> root@client_ip:/", in our case it looked like "scp ftp-0.17-89.e19.x86_64.rpm root@172.22.61.70:/"
+
+- Then it will ask some permissions, enter yes and it will prompt u to enter the client side password, after entering the package will be send to the client side.
+
+
+
+Process to be done on CLIENT SIDE : 
+
+- Open putty enter your client side IP connect to the client terminal.
+- The password will be the same for the given client IP to us. (i.e Root@2k25)
+- Move to the / directory, where we have received the package file from the server.
+- To check we can type ls.
+- Now we can simply install that package using the command "rpm -ivh <packagename>".
+
+--------------------------------------------------------------------------------------------------------------
+
+To connect server from client : 
+
+- use this command "ftp server_ip"
+
+- use name and password as ftp, so that u can anonymously login in the server, and the server can't track back your ip.
+
+- get = to download a package
+- mget = to download multiple package
+- put = to upload a package
+- mput = to upload multiple packages
+
+-> Move to the /pub/BaseOS/Packages directory.
+
+-> So we type mget zsh* (* indicating to get all the zsh packages)
+-> Now quit the connection and the file will be in your current directory.
+
+---------------------------------------------------------------------------------------------------------------
+
+Yum package in Client side :
+
+- We can repeat the process that we performed in the server side.
+
+- The difference only being here is we give the script name as client.repo
+
+- So, we have to move to this directory /etc/yum.repos.d/ using the command "cd /etc/yum.repos.d/
+
+- After this we use ls to inspect the available files, and we move the centos files to / using the command "mv centos* /".
+
+- Note * after centos represents that all files starting with centos string are to be moved and / represents the destination.
+
+- Now we have to just create a script named as client.repo, using the command "vi client.repo" .
+
+- We need to write the same content as we wrote in server side, but there is a very important difference here in the baseurl option.
+
+- While filling the baseurl option, in the server side we typed "file:// <path_of_package> " , but here since all the packages are available on the server and we are currently on the client side so we cannot simply use the same syntax. ( Note file in the command represents that packages are locally available on the system.)
+
+- In case of client side, we need to provide the actual address or baseurl from where we can get these packages.
+So, in order to do that we use this baseurl "ftp:// <your_server_ip>/pub/BaseOS" in case of BaseOS and in case of AppStream write "ftp:// <your_server_ip>/pub/AppStream"
+
+- Note, here ftp represents the protocol we are using to make the connection and the server ip actually tells where this package resides.
+
+- Save the file .
+
+- Type 'yum clean all'.
+
+- Type 'yum list all' to check all the packages were correctly imported.
+
+- Type 'yum repolist' to check whether these repos are listed or not.
+
+- Type 'yum install <package_name>' to install any package.

@@ -1,0 +1,376 @@
+Root - admin
+Pseudo - superuser with specific rights
+Shell - establish relation between user and kernel
+
+-------------------------------------------------------
+Hardware requirements : 
+4 gb ram
+100 gb disk space
+
+-------------------------------------------------------
+HCL - hardware compatibility list
+it is a list of all hardwares certified with the working of Linux OS for that version.
+Redhat website
+
+-------------------------------------------------------
+LVM - Logical Volume manager
+used for resizing
+
+-------------------------------------------------------
+RAID - Redundant array of independent/inexpensive disk
+used for fault tolerance and redundant.
+
+-------------------------------------------------------
+
+Package manager - Installing packages for any server
+
+------------------------------------------------------
+Samba - file and print sharing between Unix and windows OS
+
+-----------------------------------------------------
+Linux bind - DNS in Linux
+bind - Berkeley Internet Name Domain
+daemon - service continuously running in background ( main core of Linux bind )
+------------------------------------------------------
+
+Linux Apache - webserver in Linux
+Linux squid - web proxy server
+
+-----------------------------------------------------
+Linux is a :
+multitasking os
+multiuser os
+stable and robust os
+secure os
+less prone to virus attacks
+
+------------------------------------------------------
+
+Layered architecture of Linux os
+
+application -> shell -> kernel -> Hardware
+
+Shell - Interface between user and kernel, this is where we give commands and get the output.
+	It is a command interpreter ( HLL -> machine language, line by line ).
+
+Kernel -It is the core of the OS.
+	It performs all core functions of OS like resource management ( CPU, Memory, hdd, i/o device, hardware 	etc).
+	Process management
+	Handling interrupts
+	Booting
+
+------------------------------------------------------
+
+Linux, Unix principles : 
+
+- Everything is a file.
+- Small, single purpose programs
+- ability to chain programs to perform complex tasks
+- Avoid captive user interfaces
+- configuration data stored in text. ( configuration data stored in /etc directory).
+ System and server configurations are stored in
+
+-----------------------------------------------------
+File system hierarchy : 
+- Everything is a file in Linux.
+
+Concepts - paths are delimeted by /
+	names are case sensitive
+----------------------------------------------------
+Some imp directories - 
+
+- Home directories : /root, /home/username
+- User executable : /bin, /usr/bin, /usr/local/bin
+- System executables : /sbin,/usr/bin, /usr/local/sbin
+- Other mountpoints : /media, /mnt 
+- Configuration : /etc
+- Temporary files : /tmp
+- Kernels and bootloader : /boot
+- Server data: /var, /srv
+- System information : /proc, /sys
+- Shared libraries : /lib, /usr/lib, /usr/local/lib
+
+---------------------------------------------------
+
+Linux architecture : 
+- Monolithic kernel : contains modular components, however
+- Unix base OS
+- Six primary subsystems : 
+	process management
+	interprocess management
+	memory management
+	file system : VFS(virtual file system) - provides a single interface to multiple file systems
+	I/O management
+	Networking
+
+------------------------------------------------
+
+RHEL9 Installation - 
+- HW Requirements for RHEL9 installation
+1) processor : 64 bit
+2) Ram : 4gb or higher
+3) HDD : 30gb or higher
+4) NW card
+5) keyboard, mouse, monitor etc standard accessories
+ 
+- SW requirements - RHEL 9.2 sever or iso image higher
+-------------------------------------------------
+
+Installation methods : 
+1) locally from dvd pendrive or hdd
+2) over the network - nfs, ftp or http
+3) kickstart installation ( automated or unattended installation) - to install on multiple systems automatically with minimal user intervention
+4) PXE installation ( Pre Execution Environment) done through network booting
+
+-> can be installed in GUI or Text
+--------------------------------------------------
+
+PXE : 
+
+Pxe server <-------> client ( boot rom on new card)
+boot rom is a chip.
+
+------------------------------------------------
+RHEL commands on terminal 
+
+1: cat( concatenate ) = used to display the contents of a file. ---> cat /etc/os-release
+
+2 : cat /etc/redhat-release
+
+3: history : to display history of commands.
+
+4 : uname : gives you generic system information
+
+5 : uname -r : kernel release version
+
+6 : uname -p ( process ) : gives processor info( x86_64)
+
+7 : # - comment i.e not a command
+
+8 : uname -m (machine ) or uname -i (architecture) : x86_64
+
+9 : uname -a : it will give all system information
+
+10 : free - all free memory or ram available
+
+11 : free -g : in tabular form
+
+12 : swap - virtual memory , part of hdd is used as ram, inactive applications are moved from RAM to swap
+	sawpping = Moving from RAM to SWAP
+	Paging = Moving from Swap to RAM
+
+13 : ls - show all files in current directory
+	white - file ( with black bg )
+	proc = process = Pseudo or virtual file system used by kernel for its processor
+
+14 : unalias ls - shows without color
+
+15 : cd - change directory
+	-> refer process by process name which is referred by process id (PID)
+	-> D - parent process id
+	-> a reference for file = filename
+	-> reference = inode number or index number
+	-> refer user by user name or uid, we refer group by group names or gid
+	-> "cd" command will bring you back to the root directory.
+	-> cd ..  : will bring you to parent directory of the current directory.
+	-> cd - : immediate previous path.
+	-> cd ~ : it will change to home directory, Ex : cd ~vidit ; output -> /home/vidit 
+
+
+16 : ls -i : gives index or inode number of the files.
+
+17 : ps : gives u the process stat
+
+18 : mandb : will update the whatis database.
+
+19 : whatis : It gives single line info regarding the commands, if you get "nothing appropriate" after using say
+	whatis ls, then u should use mandb command to update the database.
+
+BASIC COMMAND SYNTAX : Command[Options] <arguments>
+Example : ls -l/root : ls -> command, -l -> option , root -> argument
+
+20 : ls -a : will show all files including hidden files in the current dir
+-> . current directory
+-> .. parent directory
+-> any file beginning with dot (.) is hidden in linux
+
+21 : ls -l : shows file with long listing i.e with permissions, folders, access, date etc.
+ -> example : drwxr-xr-x 2 root root 6(size) oct 10 2023(Date of modification) vidoes(name)
+ -> d = directory , u(user) = rwx, g(group) = rw, o(other) = rx
+ -> Type of |u|g|o  linkcount   owner  group   size   DOM file/dirname File
+
+22 : mkdir [directory name] : make directory
+ -> Absolute path : Full Path from / to that file or directory, absolute path begins with /
+   example : cd /usr/share/doc
+ -> Relative path : = Relative from your position in the directory structure and it doesn't begin with /
+   example : cd zip
+
+23 : pwd : present working directory
+
+24 : cat > filename : create a file with content,  crtl + d : to save the file
+     cat >> filename : to append the contents in already made file.
+
+25 : ls -i : list the files along with inode number
+26 : ls -R : It will recursively show all the files
+
+NOTE : We can mix the ls options with different commands such as ls -li, ls -lR etc
+
+27 : ls -lR | more : This | pipe is used to output of first command is given as input to the next command for further responses.
+
+	-> more : It is used to display the content in one page at a time.
+
+-> Putty is a tool to connect windows to Linux for remote administration. 
+
+28 : ifconfig : gives the ip address 
+
+-> SSH : Secure shell, it is used to securely administer the remote machine.
+
+29 : Cp[Options] <source> <destination>
+   
+   -> cp -i/ file1 /   -> overwrites the file1, since no destination is given.
+
+30 : cp -avri /nd /td  : used to recursively copy one dir to another dir 
+	-> a = all files including hidden files
+	-> -v = verbose(explanation)
+	-> -r = recursive
+	-> -i = interactive(prompt before overwriting)
+
+31 : Alias : c = clear
+	     d = date
+	     h = history
+	     l = ls -l
+
+32 : mv [Options] <source> <destination>
+-> if destination is a file , it will overwrite.
+-> if destination is a directory, it will move that file into the specified directory.
+-> if destination doesn't exist, then it will rename source to destination.
+
+
+33 : touch : creates an empty file, if it doesn't exist. If it exists, it will update the date and time stamp.
+
+
+34 : rm [Options] <filename> : To delete a file. ( Use -i option to have interactive access).
+
+35 : rmdir <directory name> : To delete a directory which is empty. 
+
+36 : rm -ri <directory name> : To recursively delete the file inside a directory.
+
+37 : whoami = tells us which user you have logged in
+
+38 : who = All users logged in
+
+39 : w = all users logged in and what they are doing.
+
+40 : stat <filename> : Tells about file metadata.
+
+41 : echo : printing
+
+	-> double quote always used with echo
+	-> echo " The hostname is $HOSTNAME and todays date is `date`".
+	-> $ is for getting the value
+	-> system variables are always all capital
+	-> user defined variables are free from case-sensitive
+	-> backtick (`) : To substitute a command inside of another command.
+	-> double quotes as interpolate, single quotes wont interpolate. ( Interpolate means expanding).
+
+
+NOTE : Always use -i with cp, rm and  mv as it helps to get an interactive prompt, asking if u want to follow on with the command or not.
+
+NOTE : Uid or groupID for root user is 0.
+-----------------------------------------------------------------
+
+SSL-VPN portal  -> Login using user and password given in excel sheet
+		-> Then change http to RDP to connect to jumpserver
+		-> Enter jumpserver ip and click launch
+		-> Again put your user and password and then u can successfully connect to the system.
+		-> Search putty in that system and enter your personal ip mentioned in the excel sheet.
+		-> Click Connect and then accept the connection.
+		-> Login as root and type the password as Root@2k25
+------------------------------------------------------------------
+
+
+# Assignment -> Move /nd to /root (/nd is a temporary folder created by you). ( Already completed).
+
+-------------------------------------------------------------------
+
+Softlinks vs Hardlinks : https://www.geeksforgeeks.org/operating-systems/difference-between-hard-link-and-soft-link/
+
+- Syntax for softlink to a file : ln -s filename softlinkname
+- Syntax for hardlink to a file : ln filename hardlinkname
+
+
+--> for files the hardlink is 1.
+--> for directory the hardlink is 2 by default.
+--> If you keep creating hardlinks for a file or directory then the hardlink count keeps incrementing.
+
+# Dangling link : Softlink pointing to a file which does not exist.
+
+-> Syntax for creating softlink to a directory : ln -s <dirname> softlinkname
+   You cannot create a hardlink pointing to a directory.
+
+2 Important commands : 
+
+1. df = Disk free space for partitions (Display all the active or mounted partitions).
+    - Options to be used with df
+    ->  df -h = displays all the sizes in human readable format i.e Gb,Mb,Kb etc.
+    ->  df -T = filesystem
+    -> Difference between -h and -H = In -h, it divides by 1024 and gives accurate size in gb, mb, kb etc
+				      In -H, it divides by 1000 , not accurate.
+
+2. du = Disk usage by any file or directory.(Actual space, not only characters).
+   - options to be used with du
+   -> du -s = summary
+
+
+--------------------------------------------------------------------------
+
+Basic file and dir permissions : 
+
+Symbolic method : 
+
+To whom 	Flags	Operator		Permissions
+User (owner)	u	=Assign(replace)	read(r)
+
+Group		g	+Add(Append)		write(w)
+
+Others		o	-remove(delete)		execute(x)
+
+chown <username> <fileordirname> - change owner of file / dir
+2. chgrp <groupname> <fileordirname> - change group of file / dir
+3. chmod u=permission, g=permission, o=permission <filename>
+	- Options to used with chmod
+	-> chmod ugo-permission OR chmod a-permission for all (group, owner, other)
+	-> Numeric or octal permissions
+	-> r = 4, w = 2, x = 1
+	-> chmod 761 <filename> ( 7 - rwx, 6 - rw, 1 - x)
+
+
+If u want to change group and owner name in one shot then use -> chown root: <groupname> <filename>
+
+------------------------------------------------------------------------------
+
+Topics covered in this note : 
+
+Introduction.
+Installation.
+Difference between different Linux OS.
+Basic commands such as ls, cp, mv, rm etc.
+Difference between softlink and hardlink.
+Permissions for files and directories.
+df and du command usage.
+Basic system commands : cat/etc/os-release, cat/etc/redhat-release, uname -r, uname-p, uname -m, uname -i, uname -a, free, free -g, whoami, who
+
+------------------------------------------------------------------------------
+
+
+
+Topics to cover tomorrow ( 09/09/2025) :
+
+- Boot process
+- Linux usage basics : different types of shell, shell login scripts etc
+- Partitioning
+- Different levels of help
+- Seven fundamental of file system
+
+-------------------------------------------------------------------------
+

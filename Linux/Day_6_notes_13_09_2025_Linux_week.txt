@@ -1,0 +1,208 @@
+- " tune2fs -j <partition_name> " to convert ext2 to ext3, also to get it done in effect, unmount and mount again.
+
+------------------------------------------------------------------------------------------------------------------
+
+Postfix :
+
+Service Profile : Postfix : 
+---------------------------
+
+- Type : Syste,V- managed service
+
+- Package : postfix
+
+- Daemons : /usr/libe
+
+
+
+Steps to configure POSTFIX on server side : 
+
+- Firstly, we need to install the package : "yum install postfix"
+
+- Now, if we check the mail transfer agent , using the command : "alternatives --display mta", we will see that 
+  it shows that our default mta is still sendmail.
+
+- Now to change it we need to run the command : "alternatives --config mta".
+
+- After this if we check again the mta , we will see that it will display the postfix options.
+
+- Then, we need to edit config file, here we can either just edit the config file directly using the vi editor or we can run the command : "postfix -e "inet_interfaces=all"
+
+- Check that these services are registered under the firewall using the command : "firewall-cmd --list-services"
+
+- Now we need to restart the service and enable it, using : " systemctl restart postfix" and "systemctl enable postfix"
+
+- WE need to restart the dovecot service too, using the command : " systemctl restart dovecot "
+
+- Also, dont forget to stop the sendmail service, since we wont be using it anyfurther as we are using the postfix utility for now. Command used : " systemctl stop sendmail"
+
+- Now try to send a mail to different user as discussed while studying sendmail. You will be able to do it with postfix too
+
+--------------------------------------------------------------------------------------------------------------
+
+NTP : Network Time Protocol
+
+- Chrony is a robust and flexible implementation of the Network Time Protocol (NTP) used for synchronizing the 
+  system clock with external time sources. It is particularly well-suited for environments with unreliable or    
+  congested networks, systems with intermittent connectivity, or virtual machines. Chrony can act as both an NTP 
+  client (to sync time from servers) and an NTP server (to provide time to other systems).
+
+- ntp : It is used to synchronise the time with the accurate time server on the internet
+
+- To install this, type : "yum install chrony".
+
+- (Not Completed)...Pending.
+
+
+--------------------------------------------------------------------------------------------------------------
+
+Tar : To backup files 
+
+- The syntax is like this : tar [Options] <destination> <source>
+
+- for example : tar cvf /dest_dir/des_back.bak /sour_dir ( in our case it was : tar cvf /opt/newdir.bak /newdir)
+
+- Where -c = create, -v = verbose, -f=filename
+
+- To list the backup files : " tar tvf <tar_backup_file>" ( for ex : tar tvf newdir.bak, t for listing)
+
+- To restore the files from the backup : "tar xvf <tar_backup_file>" (for ex : tar xvf newdir.bak, x for restoring)
+
+------------------------------------------------------------------------------------------------------------
+
+-> Compression and decompression : 
+---------------------------------
+
+Using gzip :
+------------
+
+- to compress a file, we use the gzip utility, like this : "gcp <filename>
+
+- Only a file can be compressed not a directory.
+
+- After compression, a .gz extension will be added in the name of the file in the end.
+
+- To read a compressed file done with gzip, then use : zcat <filename>
+
+
+
+- To decompress: 
+----------------
+
+- install this library : "yum install zlib"
+
+- After installation, we can use the gunzip utility to decompress the compressed file.
+
+- The command is : gunzip -v <filename>
+
+- bzip2 -v <filename > : this command is used to compress more than gzip.
+
+
+Now, Compression/decompression  + Backup :
+-----------------------------------------
+
+- "tar cvzf /opt/root.tgz /root " : to backup the root file as well as compress it.
+
+- "tar tvzf root.tgz" : to list the compressed backup files.
+
+- "tar xzvf root.tgz" : to restore the compressed backup files.
+
+
+tar using bzip2 :
+----------------
+
+- " tar tjvf /opt/mydir.tbz2 /mydir " : taking backup and compressing as well using bzip2( j = bzip2 )
+
+- cd /opt : move to the /opt directory
+
+- " tar tjvf mydir.tbz2" : read all the backup compressed files
+	
+- " tar xzvf mydir.tbz2" : to restore bigger files
+
+- " tar xvjf mydir.tbz2" : to restore
+
+--------------------------------------------------------------------------------------------------------------
+
+-->> VI editor : visual editor:
+-------------------------------
+
+- vim = visual improved editor.
+
+- 3 modes in vi
+
+1) Command mode (default) = 
+	Cursor movement, copy(yank), delete or cut, paste(put)
+
+2) Insert mode = Insert the text
+
+3) Ex mode = Press esc first
+
+	:w = write
+	
+	:wq = write and quit
+
+	:wq! = to save and quit forcibly
+
+	:q = quit
+
+	:q! = to abandon changes
+
+- Cursor movement : 
+	
+	h -> moves cursor to the left
+
+	j -> moves cursor down one line
+
+	k -> moves cursor up one line
+
+	l -> moves cursor to the right
+
+	w -> next word
+	
+	G -> last line
+
+	g -> first line
+
+	line_number + g = takes u to that particular line 
+
+	b -> back word
+
+	clrl + r = redo
+
+	esc + u = undo
+
+	cc = delete a line
+
+	line_number + yy = copy lines 
+
+	
+--------------------------------------------------------------------------------------------------------------
+
+
+- FIND command : find [path] <critera>
+
+- for example : find /etc -name passwd
+
+- The find command in Linux is a powerful tool used to search for files and directories based on various   
+  criteria such as name, type, size, and permissions. It traverses the specified path in the file system and can   
+  perform user-specified actions on each matched file. Here are some key points:
+
+
+Basic Syntax: find [path] [options] [expression]. 
+
+Common Options: You can search by name (-name), type (-type), size (-size), and more. 
+
+Combining with Other Commands: The results of the find command can be piped to other commands using xargs for further processing. 
+
+Real-time Search: Unlike tools like locate, the find command searches the actual state of files and directories at the time of execution. 
+
+
+NOTE : uptime will tell u how long the server is up
+
+- last will tell you the last time you have logged in or rebooted the system
+
+- /etc/sysconfig/network-scripts/ifcfg-ens160 contains the network related information of the system
+
+- ifdown ens160 will make your network and dns down.
+
+- 

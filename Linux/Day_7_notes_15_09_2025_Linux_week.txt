@@ -1,0 +1,349 @@
+->> DNS :
+---------
+
+- BIND = Berkeley Internet Name Daemon 
+
+-> Domain Name system :
+----------------------
+
+- Translates Hostname to IPADRESS ( Forward lookup ) 
+
+- Translates IPADRESS to Hostname ( Reverse lookup )
+
+
+
+->> DNS Records : 
+------------
+
+- A record address record maps hostname to OP
+
+- PTR record pointer record maps IP to Hostname
+
+- MX record mail server record
+
+- NS= Name Server Record (DNS Server)
+
+
+-> Service Profile :
+-------------------
+
+- Daemon : BIND
+
+- Main config files : /etc/named.conf, /etc/named.rfc1912zones
+
+- Forward and Reverse Lookup files : Under /var/named
+
+- Ports : 53(DNS) ,953 (RNDC) - Remote name Daemon Control
+
+- Service or Daemon to start : named
+
+NOTE : All the port numbers are listed under the file /etc/services . You can use grep for particular searches.
+
+
+-> Setting Up DNS using BIND :
+-----------------------------
+
+- Firstly, we need to install bind packages, using this command : "yum install bind bind-utils"
+
+- Now, we need to edit the /etc/named.conf, using the command : "vi /etc/named.conf"
+
+- We need to put "any" in the these parts :
+
+		listen-on port 53	{ any; } ;
+		allow-query		{ any; } ;
+
+- Now we need to edit the rfc file, using the command : "vi /etc/named.rfc1912.zones"
+
+- We need to firstly comment out the whole part containing localhost.localdomain part , after this copy down the below localhost "IN" part and edit the copied part as follows :
+
+		zone "ltim.com" IN {
+			type master;
+			file "ltim.for";
+			allow-update { none; };
+		};
+
+- Now, move to the last part of the file to add the zone for the reverse lookup ,  copy the part consisting of 0.in-addr.arpa "IN" and edit the copied part like this : 
+
+
+		zone "61.22.172.in-addr.arpa" IN {
+			type master;
+			file "ltim.rev";
+			allow-update { none; };
+		};
+
+- Save these file and exit.
+
+- Now move to /var/named directory, using : "cd /var/named"
+
+- Now, we need to create two files named as ltim.for and ltim.rev for the forward and reverse lookup data, since 
+  we won't edit the original files directly.
+
+- So, first copy the contents of the original files in these new files using the command :
+		
+			"cp named.localhost ltim.for"
+			"cp named.empty ltim.rev"
+
+- now, we can edit both these files one by one. First, we edit the ltim.for file using : "vi ltim.for"
+
+- We need to put the below data into ltim.for file : 
+
+		
+		$TTL 1D
+
+		@	IN SOA	server.ltim.com     root.server.ltim.com.    (
+
+							   0	;	serial
+							   1D   ;	refresh
+							   1H   ;       retry
+							   1W   ; 	expire
+							   3H   ;	minimum
+			
+			NS     server.ltim.com
+		server.ltim.com		A	172.22.61.69
+
+
+- We need to put the below data into the ltim.rev file : 
+
+		$TTL 1D
+
+		@	IN SOA	server.ltim.com     root.server.ltim.com.    (
+
+							   0	;	serial
+							   1D   ;	refresh
+							   1H   ;       retry
+							   1W   ; 	expire
+							   3H   ;	minimum
+			
+			NS     server.ltim.com
+		69	PTR    server.ltim.com
+
+
+- After this, we need to update the ownership using the command : "chown named.named *"
+
+- move out of the directory using cd
+
+- Now allow these services in the firewall using the command : "firewall-cmd --add-service=dns --permanent"
+
+- After adding, we need to reload the firewall using the command : "firewall-cmd --reload"
+
+- Reload the named service using : "systemctl restart named"
+
+- We type : "dig server.ltim.com " = It is used to query DNS records for the domain server.ltim.com using the dig (Domain Information Groper) tool.
+
+- We can also check the ip using the command : "dig -x 172.22.61.69" . This will query the DNS system to find the PTR record (pointer record) for that IP address, which maps it back to a hostname.
+
+- nslookup : nslookup is a command-line tool used to query DNS servers and obtain domain name or IP address mapping information.
+
+- What does nslookup do?
+-----------------------
+
+	It helps you:
+
+	- Find the IP address of a domain name.
+	- Find the domain name associated with an IP address (reverse lookup).
+	- Check if DNS records are resolving correctly.
+	- Troubleshoot DNS-related issues.
+
+- Now we type " nslookup server.ltim.com "
+
+- We can also type "nslookup 172.22.61.69" to get the desired results.
+
+NOTE : 4 very important commands to check the syntax in the config file and also in the zones config file :
+
+	1) "named-checkconf /etc/named.conf", will tell whether the named.conf is correct or not.
+
+	2) "named-checkconf /etc/named.rfczone1912.zones" will tell whether the named.rfczones1912.com is correct or not
+
+	3) "named-checkzone server.ltim.com /var/named/ltim.for, to check for the ltim.for file.
+
+	4) "named-checkzone 172.22.61.69 /var/named/ltim.rev ", to check for the ltim.rev file.
+
+Also, for the client ip, just change it to client ip and client.ltim.com.
+
+
+
+->> For the client registration on the server side, we can follow these steps : 
+---------------------------------------------------------------------------
+
+- Firstly, we need to edit the /etc/resolv.conf file, using the command : "vi /etc/resolv.conf"
+
+- We need to add : 
+			#Generated by NetworkManager
+			search lti.com
+			nameserver 172.22.61.69
+
+- Save the file and exit.
+
+- After this move to the /var/named folder , to edit the ltim.for and ltim.rev file.
+
+- Just add these lines in the end in both files : 
+
+	for ltim.for add : client.ltim.com. A 172.22.61.70
+	for ltim.rev add : 70 	PTR 	client.ltim.com.
+
+- Save these files and restart the named service using : "systemctl restart named"
+
+- Now we can check whether the dns got registered or not using the below commands : 
+
+			"dig client.ltim.com"
+			"dig -x 172.22.61.70"
+			"nslookup client.ltim.com"
+			"nslookup 172.22.61.70"
+
+
+->> DNS configuration on the client side :
+-------------------------------------
+
+- Here, we only need to make one change i.e in the /etc/resolv.conf file and nothing else. Add these things in the file : 
+
+		#Generated by NetworkManager
+		search lti.com
+		nameserver 172.22.61.69
+
+		
+- After this we can check similarly : 
+		
+		"dig client.ltim.com"
+		"dig -x 172.22.61.70"
+		"nslookup client.ltim.com"
+		"nslookup 172.22.61.70"
+
+---------------------------------------------------------------------------------------------------------------
+
+-> Redirectors : 
+----------------
+
+- Redirectors, < to redirect input, > to redirect output, 2> to redirect error.
+
+- Filters will filter the output, it won't affect the source file.
+
+- " tr 'a-z' 'A-Z' " will translate from lower case to upper case
+
+- " tr 'a-z' 'A-Z' < file1 ",  will change the contents of the file1 from lower case to upper case.
+
+- " ls > listing " , then output of ls commands goes to listing and u can check the output using "cat listing".
+
+- If you want to redirect error outputs, then we can use like this , "ls vidit 2> errorfile " then u can check the error using : "cat errorfile".
+
+- IF u want to redirect both output and error , then use " ls file1 vidit &> aopfile ".
+
+
+----------------------------------------------------------------------------------------------------------------
+
+->> Pipe:
+
+- pipe = Gives output of first command as input to next command for further processing.
+
+- "ls -l / | more"
+
+- "cat -n /etc/passwd | head -n 15| tail -n 5 " to print lines from 11th to 15th .
+
+----------------------------------------------------------------------------------------------------------------
+
+->> Filters :
+ 
+- head - show first 10 lines
+- tail - show last 10 lines
+- tr - translate
+- wc - it prints the number of words, number of lines, and the number of characters.
+- cut - cut by columns and field.
+- sed - search and replace 
+- grep - search string
+- sort - sort the file
+
+- sed is used to search and replace.
+
+Note : sed -i will replace the source file.
+
+- cut is used to by columns, i.e fields and characters
+
+- "cut -f1 -d: /etc/passwd" will cut the by the first column and with : delimeter.
+
+- -f = field number, -d = delimeter
+
+- "cut -f1,3 -d: /etc/passwd = will cut the file and display only 1st and 3rd columns.
+
+- "cut -f1-3 -d: /etc/passwd = will cut the file and display all the the first 3 columns.
+
+- " echo hello | cut -c1" will cut the first character.
+
+- "echo hello | cut -c1-4" will cut the first four characters.
+
+- "echo hello | tr -s "l" " will delete first occurrence of the character l, but it should be continuous.
+
+- "echo nitin | tr -d "i" " will delete all the occurrences of the specified character.
+
+ wc : 
+-----
+
+-> -l for number of lines, -w for number of words, -c for number of characters. 
+
+ 
+grep :
+------
+
+-> "grep Rohit names" - will search for names of Rohit.
+
+-> "grep ^r names " - will show names starting with r
+
+-> "grep r$ names " - will show names ending with r
+
+-> "grep -w raj names " - will show me only raj and nothing else.
+
+-> "grep -i dhoni names " - will ignore the cases.
+
+-> "grep -vi dhoni names "- v for excluding i for ignoring case
+
+------------------------------------------------------------------------------------------------------------
+
+->> umask : It provides default permission for files and dirs.
+---------
+
+- umask for root is 0022
+
+- umask for regular user is 0002
+
+- Default permissions for dir = 777
+
+	Dir 			Created by root		Created by regular user
+
+Default permissions for dir	777			777
+			       -022	               -002
+
+				------			------
+
+				755			775
+
+
+Default Permissions for file = 666
+            
+     File     				 Created by root   	Created by regular user
+
+Default Permissions for file          		666                      666            
+                                               -022                     -002             
+                                                -----                    ---------   
+                                                644                       664
+
+
+---------------------------------------------------------------------------------------------------------------
+
+->> File System troubleshooting : 
+----------------------------
+
+- In case there is a problem with filesystem or /etc/fstab
+
+- In maintenance mode, 
+
+- give root password.
+
+- #mount -a 
+
+- Check the faulty line in /etc/fstab as follows : 
+
+- #mount -o remount,rw /
+
+- #vi /etc/fstab
+
+- Comment or delete or correct the faulty line in /etc/fstab
+
+- #ctrl + d (two times)
